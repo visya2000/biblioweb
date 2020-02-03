@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <bean id="dataSource" class="org.apache.tomcat.dbcp.dbcp2.BasicDataSource" destroy-method="close">
+        <property name="url" value="jdbc:mysql://remotemysql.com:3306/QTR1cMgLH5?useLegacyDatetimeCode=false&amp;serverTimezone=UTC&amp;characterEncoding=utf8"/>
+        <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
+        <property name="username" value="QTR1cMgLH5"/>
+        <property name="password" value="yREpjYCKJM"/>
+        <property name="maxIdle" value="8"/>
+        <property name="maxTotal" value="120"/>
+    </bean>
+
+    <bean id="sessionFactory"
+          class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="packagesToScan" value="verbitskiy.DTO"/>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.MySQL57Dialect</prop>
+            </props>
+        </property>
+    </bean>
+
+    <tx:annotation-driven transaction-manager="txManager"/>
+    <bean id="txManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager" >
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+
+    <bean class="verbitskiy.HbmDAO.HbmDAOImpl" name="userDao">
+        <property name="entityClass" value="verbitskiy.DTO.User"/>
+    </bean>
+    <bean class="verbitskiy.HbmDAO.HbmDAOImpl" name="bookDao">
+        <property name="entityClass" value="verbitskiy.DTO.Book"/>
+    </bean>
+    <bean class="verbitskiy.HbmDAO.HbmDAOImpl" name="reviewDao">
+        <property name="entityClass" value="verbitskiy.DTO.Review"/>
+    </bean>
+    <bean class="verbitskiy.HbmDAO.HbmDAOImpl" name="authorDao">
+        <property name="entityClass" value="verbitskiy.DTO.Author"/>
+    </bean>
+    <bean class="verbitskiy.HbmDAO.HbmDAOImpl" name="genreDao">
+        <property name="entityClass" value="verbitskiy.DTO.Genre"/>
+    </bean>
+    <bean class="verbitskiy.HbmDAO.HbmDAOImpl" name="orderDao">
+        <property name="entityClass" value="verbitskiy.DTO.Order"/>
+    </bean>
+
+    <tx:advice id="txAd" transaction-manager="txManager">
+        <tx:attributes>
+            <tx:method name="get*" read-only="true"/>
+            <tx:method name="*"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <aop:config>
+        <aop:pointcut id="allGetOperations" expression="execution(* verbitskiy.services.*Service.*(..))"/>
+        <aop:advisor advice-ref="txAd" pointcut-ref="allGetOperations"/>
+    </aop:config>
+
+
+</beans>
